@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "TaskFlow Pro",
-    "slug": "taskflow-pro",
+    "name": "Taskify",
+    "slug": "taskify",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/taskify.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/taskify-splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#6366F1"
     },
@@ -18,13 +18,29 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.iliyar.taskify",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/taskify-adaptive.png",
         "backgroundColor": "#6366F1"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/taskify.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "408b89b2-13da-48a8-91f7-f2e24d01a03a"
+      }
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/408b89b2-13da-48a8-91f7-f2e24d01a03a"
     }
   }
 }
