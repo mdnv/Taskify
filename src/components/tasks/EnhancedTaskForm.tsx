@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet, Text, Switch } from 'react-native';
+import { 
+  View, 
+  ScrollView, 
+  StyleSheet, 
+  Text, 
+  Switch, 
+  Platform,
+  TouchableOpacity 
+} from 'react-native';
 import { useTheme } from '../ui/ThemeProvider';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
@@ -7,14 +15,19 @@ import { DatePicker } from '../common/DatePicker';
 import { CategoryChip } from '../categories/CategoryChip';
 import { Task, Category } from '../../types';
 import { useCategoryStore } from '../../store/useCategoryStore';
-
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 interface EnhancedTaskFormProps {
   task?: Task;
   onSubmit: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isCompleted' | 'order'>) => void;
   onCancel: () => void;
 }
 
-export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({ task, onSubmit, onCancel }) => {
+export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({ 
+  task, 
+  onSubmit, 
+  onCancel 
+}) => {
   const { colors } = useTheme();
   const { categories } = useCategoryStore();
   
@@ -24,7 +37,13 @@ export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({ task, onSubm
   const [categoryId, setCategoryId] = useState<string | undefined>(task?.categoryId);
   const [dueDate, setDueDate] = useState<Date | undefined>(task?.dueDate);
   const [enableReminder, setEnableReminder] = useState(!!task?.reminder);
-  const [reminder, setReminder] = useState<Date | undefined>(task?.reminder);
+  const [reminderTime, setReminderTime] = useState<Date>(() => {
+    // Устанавливаем время по умолчанию на 9:00 утра
+    const defaultTime = new Date();
+    defaultTime.setHours(9, 0, 0, 0);
+    return task?.reminder ? new Date(task.reminder) : defaultTime;
+  });
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -35,14 +54,37 @@ export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({ task, onSubm
       setCategoryId(task.categoryId);
       setDueDate(task.dueDate);
       setEnableReminder(!!task.reminder);
-      setReminder(task.reminder);
+      if (task.reminder) {
+        setReminderTime(new Date(task.reminder));
+      }
     }
   }, [task]);
+
+  const handleTimeChange = (event: any, selectedTime?: Date) => {
+    setShowTimePicker(Platform.OS === 'ios');
+    
+    if (selectedTime) {
+      setReminderTime(selectedTime);
+    }
+  };
 
   const handleSubmit = () => {
     if (!title.trim()) {
       setError('Title is required');
       return;
+    }
+
+    let finalReminder: Date | undefined = undefined;
+    
+    if (enableReminder && dueDate) {
+      // Создаем дату напоминания на основе dueDate и выбранного времени
+      const reminderDate = new Date(dueDate);
+      reminderDate.setHours(reminderTime.getHours());
+      reminderDate.setMinutes(reminderTime.getMinutes());
+      reminderDate.setSeconds(0);
+      reminderDate.setMilliseconds(0);
+      
+      finalReminder = reminderDate;
     }
 
     onSubmit({
@@ -51,18 +93,23 @@ export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({ task, onSubm
       priority,
       categoryId,
       dueDate,
-      reminder: enableReminder ? reminder : undefined,
+      reminder: finalReminder,
     });
 
     setError('');
   };
 
-  const PriorityButton: React.FC<{ level: Task['priority']; label: string }> = ({ level, label }) => (
-    <Button
-      title={label}
-      variant={priority === level ? 'primary' : 'outline'}
-      onPress={() => setPriority(level)}
-    />
+  const PriorityButton: React.FC<{ level: Task['priority']; label: string }> = ({ 
+    level, 
+    label 
+  }) => (
+    <View style={styles.priorityButtonWrapper}>
+      <Button
+        title={label}
+        variant={priority === level ? 'primary' : 'outline'}
+        onPress={() => setPriority(level)}
+      />
+    </View>
   );
 
   const selectedCategory = categories.find(cat => cat.id === categoryId);
@@ -102,36 +149,34 @@ export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({ task, onSubm
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
+          contentContainerStyle={styles.categoriesContent}
         >
-          <View style={styles.categoriesList}>
-            <TouchableOpacity
-              style={[
-                styles.categoryOption,
-                { 
-                  backgroundColor: !categoryId ? colors.primary : colors.surface,
-                  borderColor: colors.border 
-                }
-              ]}
-              onPress={() => setCategoryId(undefined)}
-            >
-              <Text style={[
-                styles.categoryOptionText,
-                { color: !categoryId ? '#FFFFFF' : colors.text }
-              ]}>
-                None
-              </Text>
-            </TouchableOpacity>
-            {categories.map((category) => (
-              <CategoryChip
-                key={category.id}
-                category={category}
-                selected={categoryId === category.id}
-                onPress={() => setCategoryId(category.id)}
-                size="small"
-              />
-            ))}
-          </View>
+          <TouchableOpacity
+            style={[
+              styles.categoryOption,
+              { 
+                backgroundColor: !categoryId ? colors.primary : colors.surface,
+                borderColor: colors.border 
+              }
+            ]}
+            onPress={() => setCategoryId(undefined)}
+          >
+            <Text style={[
+              styles.categoryOptionText,
+              { color: !categoryId ? '#FFFFFF' : colors.text }
+            ]}>
+              None
+            </Text>
+          </TouchableOpacity>
+          {categories.map((category) => (
+            <CategoryChip
+              key={category.id}
+              category={category}
+              selected={categoryId === category.id}
+              onPress={() => setCategoryId(category.id)}
+              size="small"
+            />
+          ))}
         </ScrollView>
         {selectedCategory && (
           <View style={styles.selectedCategory}>
@@ -142,31 +187,90 @@ export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({ task, onSubm
         )}
       </View>
 
-      <DatePicker
-        label="Due Date (Optional)"
-        value={dueDate}
-        onChange={setDueDate}
-        placeholder="Select due date"
-      />
+      <View style={styles.section}>
+        <Text style={[styles.sectionLabel, { color: colors.text }]}>Due Date (Optional)</Text>
+        <DatePicker
+          value={dueDate}
+          onChange={setDueDate}
+          placeholder="Select due date"
+        />
+      </View>
 
       <View style={styles.section}>
         <View style={styles.reminderHeader}>
-          <Text style={[styles.sectionLabel, { color: colors.text }]}>Reminder</Text>
+          <View>
+            <Text style={[styles.sectionLabel, { color: colors.text }]}>Reminder</Text>
+            <Text style={[styles.reminderSubtitle, { color: colors.textSecondary }]}>
+              Get notified before due date
+            </Text>
+          </View>
           <Switch
             value={enableReminder}
             onValueChange={setEnableReminder}
             trackColor={{ false: colors.border, true: colors.primary }}
             thumbColor={enableReminder ? '#FFFFFF' : '#FFFFFF'}
+            disabled={!dueDate}
           />
         </View>
         
-        {enableReminder && (
-          <DatePicker
-            value={reminder}
-            onChange={setReminder}
-            placeholder="Set reminder time"
-            minimumDate={new Date()}
-          />
+        {enableReminder && dueDate && (
+          <View style={styles.reminderContent}>
+            <View style={styles.reminderInfo}>
+              <MaterialCommunityIcons 
+                name="information" 
+                size={16} 
+                color={colors.textSecondary} 
+              />
+              <Text style={[styles.reminderText, { color: colors.textSecondary }]}>
+                You will be reminded on {dueDate.toLocaleDateString()} at{' '}
+                {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+            
+            <TouchableOpacity
+              style={[styles.timeButton, { 
+                backgroundColor: colors.surface, 
+                borderColor: colors.border 
+              }]}
+              onPress={() => setShowTimePicker(true)}
+            >
+              <MaterialCommunityIcons 
+                name="clock-outline" 
+                size={20} 
+                color={colors.text} 
+              />
+              <Text style={[styles.timeButtonText, { color: colors.text }]}>
+                {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+              <MaterialCommunityIcons 
+                name="chevron-down" 
+                size={20} 
+                color={colors.textSecondary} 
+              />
+            </TouchableOpacity>
+
+            {showTimePicker && (
+              <DateTimePicker
+                value={reminderTime}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={handleTimeChange}
+              />
+            )}
+          </View>
+        )}
+        
+        {enableReminder && !dueDate && (
+          <View style={styles.warningContainer}>
+            <MaterialCommunityIcons 
+              name="alert-circle" 
+              size={16} 
+              color={colors.warning} 
+            />
+            <Text style={[styles.warningText, { color: colors.warning }]}>
+              Please set a due date to enable reminders
+            </Text>
+          </View>
         )}
       </View>
 
@@ -198,23 +302,27 @@ const styles = StyleSheet.create({
   sectionLabel: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 4,
+  },
+  reminderSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
   },
   priorityContainer: {
     flexDirection: 'row',
     gap: 8,
   },
-  categoriesContainer: {
-    marginHorizontal: -16,
+  priorityButtonWrapper: {
+    flex: 1,
   },
-  categoriesList: {
+  categoriesContent: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
     gap: 8,
+    paddingHorizontal: 0,
   },
   categoryOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
   },
@@ -232,7 +340,47 @@ const styles = StyleSheet.create({
   reminderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  reminderContent: {
+    marginTop: 12,
+    gap: 12,
+  },
+  reminderInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  reminderText: {
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 18,
+  },
+  timeButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 12,
+  },
+  timeButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
+  },
+  warningContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+  },
+  warningText: {
+    fontSize: 14,
+    flex: 1,
   },
   actions: {
     gap: 12,
@@ -241,4 +389,4 @@ const styles = StyleSheet.create({
   },
 });
 
-import { TouchableOpacity } from 'react-native';
+export default EnhancedTaskForm;

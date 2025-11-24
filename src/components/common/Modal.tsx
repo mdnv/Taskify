@@ -51,8 +51,6 @@ export const Modal: React.FC<ModalProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
     overflow: 'hidden',
   },
   header: {

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Taskify",
     "slug": "taskify",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/taskify.png",
     "userInterfaceStyle": "automatic",
@@ -19,7 +19,7 @@
     },
     "android": {
       "package": "com.iliyar.taskify",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/taskify-adaptive.png",
         "backgroundColor": "#6366F1"
@@ -35,7 +35,33 @@
       }
     },
     "plugins": [
-      "expo-build-properties"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 33,
+            "targetSdkVersion": 33,
+            "buildToolsVersion": "33.0.0"
+          }
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "TaskifyWidget",
+              "label": "Taskify",
+              "minWidth": 240,
+              "minHeight": 240,
+              "maxWidth": 500,
+              "maxHeight": 600,
+              "previewImage": "./assets/taskify.png",
+              "description": "View and manage your tasks"
+            }
+          ]
+        }
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"

@@ -10,7 +10,10 @@ import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import { useSettingsStore } from './src/store/useSettingsStore';
 import { useCategoryStore } from './src/store/useCategoryStore';
 import { Text, View } from 'react-native';
+import { useTaskStore } from './src/store/useTaskStore';
+import { NotificationService } from './src/utils/notifications';
 import * as SplashScreen from 'expo-splash-screen';
+import './src/widgets/registry';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,12 +23,26 @@ const Tab = createBottomTabNavigator();
 function TabNavigator() {
   const { colors, isDark } = useTheme();
   const { loadCategories } = useCategoryStore();
+  const { loadTasks, scheduleTaskReminders, checkAndNotifyOverdueTasks, initializeWidget } = useTaskStore();
 
   useEffect(() => {
-    loadCategories();
+    const initializeApp = async () => {
+      await loadTasks();
+      await loadCategories();
+      
+      // Инициализация уведомлений
+      await NotificationService.requestPermissions();
+      await scheduleTaskReminders();
+      await checkAndNotifyOverdueTasks();
+      
+      // Инициализация виджета
+      await initializeWidget();
+    };
+
+    initializeApp();
   }, []);
 
-   return (
+  return (
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
@@ -73,6 +90,7 @@ function TabNavigator() {
   );
 }
 
+
 // Error Boundary Component
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
@@ -113,14 +131,11 @@ export default function App() {
   useEffect(() => {
     async function prepare() {
       try {
-        // Pre-load fonts, make any API calls you need to do here
-        await Promise.all([
-          // Font.loadAsync(...),
-        ]);
+        // Инициализация уведомлений при запуске приложения
+        await NotificationService.requestPermissions();
       } catch (e) {
         console.warn(e);
       } finally {
-        // Tell the application to render
         setAppIsReady(true);
         await SplashScreen.hideAsync();
       }

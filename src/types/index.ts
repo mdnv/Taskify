@@ -8,9 +8,11 @@ export interface Task {
   dueDate?: Date;
   createdAt: Date;
   updatedAt: Date;
-  order: number; // For drag & drop
-  reminder?: Date; // For notifications
+  order: number;
+  reminder?: Date;
+  notificationId?: string;
 }
+
 
 export interface Category {
   id: string;

@@ -19,6 +19,9 @@ import { DraggableTaskList } from '../components/tasks/DraggableTaskList';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { EnhancedTaskForm } from '../components/tasks/EnhancedTaskForm';
 
+import { TestTaskForm } from '../components/tasks/TestTaskForm';
+
+
 export const HomeScreen: React.FC = () => {
   const { colors } = useTheme();
   const {
@@ -444,6 +447,18 @@ export const HomeScreen: React.FC = () => {
       </TouchableOpacity>
 
       {/* Phase 3: Enhanced Task Form Modals */}
+
+      <Modal
+        visible={isAddModalVisible}
+        onClose={() => setIsAddModalVisible(false)}
+        title="Add Test Task"
+      >
+        <TestTaskForm
+          onSubmit={handleAddTask}
+          onCancel={() => setIsAddModalVisible(false)}
+        />
+      </Modal>
+
       <Modal
         visible={isAddModalVisible}
         onClose={() => setIsAddModalVisible(false)}

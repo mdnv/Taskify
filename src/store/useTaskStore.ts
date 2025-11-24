@@ -3,6 +3,8 @@ import { Task, FilterOptions } from '../types';
 import { Storage } from '../utils/storage';
 import { generateId } from '../utils/helpers';
 import { useCategoryStore } from './useCategoryStore';
+import { NotificationService } from '../utils/notifications';
+import { widgetService } from '../utils/widgetService';
 
 interface TaskStore {
   tasks: Task[];
@@ -27,6 +29,9 @@ interface TaskStore {
   getAnalyticsData: () => AnalyticsData;
   exportData: () => BackupData;
   importData: (data: BackupData) => void;
+  scheduleTaskReminders: () => Promise<void>;
+  checkAndNotifyOverdueTasks: () => Promise<void>;
+  initializeWidget: () => Promise<void>;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -34,6 +39,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   filters: { status: 'all' },
   isLoading: false,
   searchQuery: '',
+
+  
 
   loadTasks: async () => {
     set({ isLoading: true });
@@ -57,7 +64,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
-  addTask: (taskData) => {
+  addTask: async (taskData) => {
     const { tasks } = get();
     const newTask: Task = {
       id: generateId(),
@@ -65,7 +72,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       isCompleted: false,
       createdAt: new Date(),
       updatedAt: new Date(),
-      order: tasks.length, // New tasks at the end
+      order: tasks.length,
     };
 
     set((state) => {
@@ -79,35 +86,88 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       
       return { tasks: newTasks };
     });
-  },
 
-  updateTask: (id, updates) => {
-    set((state) => {
-      const oldTask = state.tasks.find(task => task.id === id);
-      const newTasks = state.tasks.map(task =>
-        task.id === id
-          ? { ...task, ...updates, updatedAt: new Date() }
-          : task
-      );
-      Storage.setItem('tasks', newTasks);
+    await widgetService.onTasksChange([...get().tasks, newTask]);
 
-      if (oldTask && updates.categoryId !== undefined && oldTask.categoryId !== updates.categoryId) {
-        const { updateTaskCount } = useCategoryStore.getState();
-        if (oldTask.categoryId) {
-          updateTaskCount(oldTask.categoryId, -1);
-        }
-        if (updates.categoryId) {
-          updateTaskCount(updates.categoryId, 1);
-        }
+    // Создаем напоминание если указано
+    if (taskData.reminder) {
+      const notificationId = await NotificationService.scheduleTaskReminder(newTask);
+      if (notificationId) {
+        // Обновляем задачу с ID уведомления
+        get().updateTask(newTask.id, { notificationId });
       }
-      
-      return { tasks: newTasks };
-    });
+    }
+
+    // Проверяем просроченные задачи
+    await NotificationService.checkOverdueTasks([...get().tasks, newTask]);
   },
 
-  deleteTask: (id) => {
+
+  updateTask: async (id, updates) => {
+  const oldTask = get().tasks.find(task => task.id === id);
+  
+  // Handle reminder updates before updating the main state
+  let finalUpdates = { ...updates };
+  
+  if (updates.reminder !== undefined || updates.dueDate !== undefined) {
+    if (oldTask?.notificationId && !updates.reminder) {
+      // Если напоминание удалено, отменяем уведомление
+      await NotificationService.cancelReminder(oldTask.notificationId);
+      finalUpdates.notificationId = undefined;
+    }
+  }
+  
+  set((state) => {
+    const newTasks = state.tasks.map(task =>
+      task.id === id
+        ? { ...task, ...finalUpdates, updatedAt: new Date() }
+        : task
+    );
+    Storage.setItem('tasks', newTasks);
+
+    if (oldTask && updates.categoryId !== undefined && oldTask.categoryId !== updates.categoryId) {
+      const { updateTaskCount } = useCategoryStore.getState();
+      if (oldTask.categoryId) {
+        updateTaskCount(oldTask.categoryId, -1);
+      }
+      if (updates.categoryId) {
+        updateTaskCount(updates.categoryId, 1);
+      }
+    }
+    
+    return { tasks: newTasks };
+  });
+
+  await widgetService.onTasksChange(get().tasks);
+
+  // Schedule notification after state is updated
+  const updatedTask = get().tasks.find(task => task.id === id);
+  if (updatedTask && finalUpdates.reminder) {
+    const notificationId = await NotificationService.scheduleTaskReminder(updatedTask);
+    if (notificationId) {
+      // Update state with notificationId without recursive call
+      set((state) => {
+        const newTasks = state.tasks.map(task =>
+          task.id === id
+            ? { ...task, notificationId, updatedAt: new Date() }
+            : task
+        );
+        Storage.setItem('tasks', newTasks);
+        return { tasks: newTasks };
+      });
+    }
+  }
+
+  // Проверяем просроченные задачи после обновления
+  await NotificationService.checkOverdueTasks(get().tasks);
+},
+
+
+
+  deleteTask: async (id) => {
+    const taskToDelete = get().tasks.find(task => task.id === id);
+    
     set((state) => {
-      const taskToDelete = state.tasks.find(task => task.id === id);
       const newTasks = state.tasks.filter(task => task.id !== id);
       Storage.setItem('tasks', newTasks);
 
@@ -118,9 +178,17 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       
       return { tasks: newTasks };
     });
+
+    await widgetService.onTasksChange(get().tasks);
+
+    // Удаляем связанные уведомления
+    if (taskToDelete?.notificationId) {
+      await NotificationService.cancelReminder(taskToDelete.notificationId);
+    }
   },
 
-  toggleCompletion: (id) => {
+
+  toggleCompletion: async (id) => {
     set((state) => {
       const newTasks = state.tasks.map(task =>
         task.id === id
@@ -130,6 +198,41 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       Storage.setItem('tasks', newTasks);
       return { tasks: newTasks };
     });
+
+    await widgetService.onTasksChange(get().tasks);
+
+    // Если задача завершена, удаляем напоминания
+    const task = get().tasks.find(t => t.id === id);
+    if (task?.notificationId) {
+      await NotificationService.cancelReminder(task.notificationId);
+      get().updateTask(id, { notificationId: undefined });
+    }
+  },
+
+  initializeWidget: async () => {
+    const { tasks } = get();
+    if (tasks && Array.isArray(tasks)) {
+      await widgetService.onTasksChange(tasks);
+    }
+  },
+
+  scheduleTaskReminders: async () => {
+    const { tasks } = get();
+    const now = new Date();
+    
+    for (const task of tasks) {
+      if (task.reminder && task.reminder > now && !task.isCompleted) {
+        const notificationId = await NotificationService.scheduleTaskReminder(task);
+        if (notificationId && !task.notificationId) {
+          get().updateTask(task.id, { notificationId });
+        }
+      }
+    }
+  },
+
+  checkAndNotifyOverdueTasks: async () => {
+    const { tasks } = get();
+    await NotificationService.checkOverdueTasks(tasks);
   },
 
   setFilter: (filter) => {
@@ -195,12 +298,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const newTasks = state.tasks.filter(task => !task.isCompleted);
       Storage.setItem('tasks', newTasks);
 
-      completedTasks.forEach(task => {
-        if (task.categoryId) {
-          const { updateTaskCount } = useCategoryStore.getState();
-          updateTaskCount(task.categoryId, -1);
-        }
-      });
+      if (completedTasks && Array.isArray(completedTasks)) {
+        completedTasks.forEach(task => {
+          if (task.categoryId) {
+            const { updateTaskCount } = useCategoryStore.getState();
+            updateTaskCount(task.categoryId, -1);
+          }
+        });
+      }
       
       return { tasks: newTasks };
     });

@@ -105,20 +105,22 @@ export const BackupRestore: React.FC = () => {
     try {
       let csvContent = 'Title,Description,Priority,Category,Completed,Due Date,Created At\n';
       
-      tasks.forEach(task => {
-        const category = categories.find(cat => cat.id === task.categoryId);
-        const row = [
-          `"${task.title.replace(/"/g, '""')}"`,
-          `"${(task.description || '').replace(/"/g, '""')}"`,
-          task.priority,
-          category?.name || '',
-          task.isCompleted ? 'Yes' : 'No',
-          task.dueDate ? task.dueDate.toISOString().split('T')[0] : '',
-          task.createdAt.toISOString().split('T')[0]
-        ].join(',');
-        
-        csvContent += row + '\n';
-      });
+      if (tasks && Array.isArray(tasks)) {
+        tasks.forEach(task => {
+          const category = categories.find(cat => cat.id === task.categoryId);
+          const row = [
+            `"${task.title.replace(/"/g, '""')}"`,
+            `"${(task.description || '').replace(/"/g, '""')}"`,
+            task.priority,
+            category?.name || '',
+            task.isCompleted ? 'Yes' : 'No',
+            task.dueDate ? task.dueDate.toISOString().split('T')[0] : '',
+            task.createdAt.toISOString().split('T')[0]
+          ].join(',');
+          
+          csvContent += row + '\n';
+        });
+      }
 
       const fileName = `TaskFlowPro_Export_${new Date().toISOString().split('T')[0]}.csv`;
       

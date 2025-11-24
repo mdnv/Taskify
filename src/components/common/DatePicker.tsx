@@ -24,12 +24,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const [showPicker, setShowPicker] = useState(false);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowPicker(false);
+    setShowPicker(Platform.OS === 'ios'); // На iOS оставляем открытым, на Android закрываем
     
     if (event.type === 'set' && selectedDate) {
       onChange(selectedDate);
     } else if (event.type === 'dismissed') {
       // User cancelled
+      if (Platform.OS === 'android') {
+        setShowPicker(false);
+      }
     }
   };
 
