@@ -66,6 +66,7 @@ function TabNavigator() {
             <MaterialCommunityIcons name="home" size={size} color={color} />
           ),
           title: 'Tasks',
+          tabBarStyle: { marginBottom: 8 },
         }}
       />
       <Tab.Screen
@@ -75,6 +76,8 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="folder" size={size} color={color} />
           ),
+          title: 'Categories',
+          tabBarStyle: { marginBottom: 8 },
         }}
       />
       <Tab.Screen
@@ -84,6 +87,8 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="chart-box" size={size} color={color} />
           ),
+          title: 'Analytics',
+          tabBarStyle: { marginBottom: 8 },
         }}
       />
     </Tab.Navigator>
