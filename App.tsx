@@ -9,6 +9,11 @@ import { CategoriesScreen } from './src/screens/CategoriesScreen';
 import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import { useSettingsStore } from './src/store/useSettingsStore';
 import { useCategoryStore } from './src/store/useCategoryStore';
+import { Text, View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync();
+
 
 const Tab = createBottomTabNavigator();
 
@@ -20,7 +25,7 @@ function TabNavigator() {
     loadCategories();
   }, []);
 
-  return (
+   return (
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
@@ -68,13 +73,74 @@ function TabNavigator() {
   );
 }
 
+// Error Boundary Component
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('App Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+          <Text style={{ fontSize: 18, textAlign: 'center' }}>
+            Something went wrong. Please restart the app.
+          </Text>
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+
 export default function App() {
+  const [appIsReady, setAppIsReady] = React.useState(false);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls you need to do here
+        await Promise.all([
+          // Font.loadAsync(...),
+        ]);
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Tell the application to render
+        setAppIsReady(true);
+        await SplashScreen.hideAsync();
+      }
+    }
+
+    prepare();
+  }, []);
+
+  if (!appIsReady) {
+    return null;
+  }
+
   return (
-    <ThemeProvider>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <TabNavigator />
-      </NavigationContainer>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          <TabNavigator />
+        </NavigationContainer>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
