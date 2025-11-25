@@ -137,23 +137,22 @@ npx eas build --platform ios --release
 
 ### Только Android APK
 ```bash
-npx eas build --platform android --release
+npx eas build --platform android
 ```
 
 ### Только iOS IPA
 ```bash
-npx eas build --platform ios --release
+npx eas build --platform ios
 ```
 
 ### Оба файла
 ```bash
-npx eas build --platform all --release
+npx eas build --platform all
 ```
 
 ### Android Debug (для тестирования)
 ```bash
 npx eas build --platform android
-# Без --release флага, быстрее собирается
 ```
 
 ### iOS Simulator (для Mac)

@@ -23,21 +23,21 @@ read -p "Enter choice (1-6): " choice
 case $choice in
     1)
         echo ""
-        echo "[BUILD] Starting Android APK Release Build..."
+        echo "[BUILD] Starting Android APK Build..."
         echo ""
-        npx eas build --platform android --release
+        npx eas build --platform android
         ;;
     2)
         echo ""
-        echo "[BUILD] Starting iOS IPA Release Build..."
+        echo "[BUILD] Starting iOS IPA Build..."
         echo ""
-        npx eas build --platform ios --release
+        npx eas build --platform ios
         ;;
     3)
         echo ""
-        echo "[BUILD] Starting Android + iOS Release Build..."
+        echo "[BUILD] Starting Android + iOS Build..."
         echo ""
-        npx eas build --platform all --release
+        npx eas build --platform all
         ;;
     4)
         echo ""

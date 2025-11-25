@@ -21,21 +21,21 @@ set /p choice="Enter choice (1-6): "
 
 if "%choice%"=="1" (
     echo.
-    echo [BUILD] Starting Android APK Release Build...
+    echo [BUILD] Starting Android APK Build...
     echo.
-    call npx eas build --platform android --release
+    call npx eas build --platform android
     
 ) else if "%choice%"=="2" (
     echo.
-    echo [BUILD] Starting iOS IPA Release Build...
+    echo [BUILD] Starting iOS IPA Build...
     echo.
-    call npx eas build --platform ios --release
+    call npx eas build --platform ios
     
 ) else if "%choice%"=="3" (
     echo.
-    echo [BUILD] Starting Android + iOS Release Build...
+    echo [BUILD] Starting Android + iOS Build...
     echo.
-    call npx eas build --platform all --release
+    call npx eas build --platform all
     
 ) else if "%choice%"=="4" (
     echo.
