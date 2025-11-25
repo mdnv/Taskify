@@ -7,7 +7,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTheme } from '../components/ui/ThemeProvider';
-import { useTaskStore } from '../store/useTaskStore';
 import { useCategoryStore } from '../store/useCategoryStore';
 import { TaskList } from '../components/tasks/TaskList';
 import { Modal } from '../components/common/Modal';
@@ -18,7 +17,8 @@ import { Task } from '../types';
 import { DraggableTaskList } from '../components/tasks/DraggableTaskList';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { EnhancedTaskForm } from '../components/tasks/EnhancedTaskForm';
-
+import { SimpleWidget } from '../widgets/SimpleWidget';
+import { useTaskStore } from '../store/useTaskStore';
 import { TestTaskForm } from '../components/tasks/TestTaskForm';
 
 
@@ -68,6 +68,14 @@ export const HomeScreen: React.FC = () => {
       });
       setQuickTask('');
     }
+  };
+
+  const handleToggleTask = (taskId: string) => {
+    toggleCompletion(taskId);
+  };
+
+  const handleOpenApp = () => {
+    // Widget will use this callback when task is tapped
   };
 
   const handleAddTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isCompleted' | 'order'>) => {
@@ -393,6 +401,15 @@ export const HomeScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Widget Preview */}
+      <View style={[styles.widgetContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <SimpleWidget 
+          tasks={tasks}
+          onToggleTask={handleToggleTask}
+          onOpenApp={handleOpenApp}
+        />
+      </View>
+
       {/* Filter Bar */}
       <ScrollView
         horizontal
@@ -693,6 +710,13 @@ const styles = StyleSheet.create({
   clearText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  widgetContainer: {
+    marginHorizontal: 12,
+    marginVertical: 8,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   fab: {
     position: 'absolute',
