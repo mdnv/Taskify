@@ -40,6 +40,7 @@
     "react-native-share": "^12.2.1",
     "react-native-vector-icons": "^10.0.0",
     "react-native-web": "~0.19.6",
+    "react-native-widget": "^1.0.0",
     "zustand": "^4.4.0"
   },
   "devDependencies": {

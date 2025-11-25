@@ -13,6 +13,7 @@ import { Text, View } from 'react-native';
 import { useTaskStore } from './src/store/useTaskStore';
 import { NotificationService } from './src/utils/notifications';
 import { widgetService } from './src/utils/widgetService';
+import { useWidgetCallHandler, updateWidgetData } from './src/utils/widgetCallHandler';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
@@ -24,6 +25,9 @@ function TabNavigator() {
   const { colors, isDark } = useTheme();
   const { loadCategories } = useCategoryStore();
   const { loadTasks, scheduleTaskReminders, checkAndNotifyOverdueTasks, tasks } = useTaskStore();
+
+  // Инициализировать обработчик событий виджета
+  useWidgetCallHandler();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -39,6 +43,9 @@ function TabNavigator() {
       if (tasks && tasks.length > 0) {
         await widgetService.initializeWidget(tasks);
       }
+      
+      // Обновить данные в нативном виджете
+      updateWidgetData();
     };
 
     initializeApp();
@@ -48,6 +55,7 @@ function TabNavigator() {
   useEffect(() => {
     if (tasks && tasks.length >= 0) {
       widgetService.updateWidget(tasks);
+      updateWidgetData();
     }
   }, [tasks]);
 
