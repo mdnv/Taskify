@@ -1,9 +1,10 @@
 import React from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View, Animated } from 'react-native';
 import { useTheme } from '../ui/ThemeProvider';
 import { TaskItem } from './TaskItem';
 import { EmptyState } from '../ui/EmptyState';
 import { Task } from '../../types';
+import { AnimatedContainer } from '../animations/AnimatedComponents';
 
 interface TaskListProps {
   tasks: Task[];
@@ -38,13 +39,15 @@ export const TaskList: React.FC<TaskListProps> = ({
     <FlatList
       data={tasks}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
-        <TaskItem
-          task={item}
-          onToggle={onToggleTask}
-          onEdit={onEditTask}
-          onDelete={onDeleteTask}
-        />
+      renderItem={({ item, index }) => (
+        <AnimatedContainer type="slideUp" delay={index * 50}>
+          <TaskItem
+            task={item}
+            onToggle={onToggleTask}
+            onEdit={onEditTask}
+            onDelete={onDeleteTask}
+          />
+        </AnimatedContainer>
       )}
       style={[styles.list, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}

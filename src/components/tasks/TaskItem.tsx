@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { useTheme } from '../ui/ThemeProvider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { CategoryChip } from '../categories/CategoryChip';
@@ -18,8 +18,32 @@ interface TaskItemProps {
 export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDelete }) => {
   const { colors } = useTheme();
   const { getCategoryById } = useCategoryStore();
+  const scaleAnim = useRef(new Animated.Value(1)).current;
   
   const category = task.categoryId ? getCategoryById(task.categoryId) : undefined;
+
+  const handleToggle = () => {
+    // Bounce animation
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1.02,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    onToggle(task.id);
+  };
 
   const getPriorityColor = () => {
     return priorityColors[task.priority];
@@ -49,10 +73,10 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDe
   const dueDateInfo = getDueDateText();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+    <Animated.View style={[styles.container, { backgroundColor: colors.surface, transform: [{ scale: scaleAnim }] }]}>
       <TouchableOpacity
         style={styles.checkboxContainer}
-        onPress={() => onToggle(task.id)}
+        onPress={handleToggle}
       >
         <View
           style={[
@@ -162,7 +186,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onToggle, onEdit, onDe
           />
         </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 

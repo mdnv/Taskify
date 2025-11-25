@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from './ThemeProvider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { PulseAnimation } from '../animations/AnimatedComponents';
 
 interface EmptyStateProps {
   icon: string;
@@ -14,11 +15,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, message }) 
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <MaterialCommunityIcons 
-        name={icon as any} 
-        size={64} 
-        color={colors.textSecondary} 
-      />
+      <PulseAnimation>
+        <MaterialCommunityIcons 
+          name={icon as any} 
+          size={64} 
+          color={colors.textSecondary} 
+        />
+      </PulseAnimation>
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text>
     </View>

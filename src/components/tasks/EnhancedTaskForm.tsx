@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   ScrollView, 
@@ -6,7 +6,8 @@ import {
   Text, 
   Switch, 
   Platform,
-  TouchableOpacity 
+  TouchableOpacity,
+  Animated 
 } from 'react-native';
 import { useTheme } from '../ui/ThemeProvider';
 import { Input } from '../common/Input';
@@ -17,6 +18,7 @@ import { Task, Category } from '../../types';
 import { useCategoryStore } from '../../store/useCategoryStore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { AnimatedContainer } from '../animations/AnimatedComponents';
 interface EnhancedTaskFormProps {
   task?: Task;
   onSubmit: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isCompleted' | 'order'>) => void;
@@ -116,36 +118,43 @@ export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Input
-        label="Title *"
-        value={title}
-        onChangeText={(text) => {
-          setTitle(text);
-          setError('');
-        }}
-        placeholder="What needs to be done?"
-        error={error}
-      />
+      <AnimatedContainer type="slideUp" delay={0}>
+        <Input
+          label="Title *"
+          value={title}
+          onChangeText={(text) => {
+            setTitle(text);
+            setError('');
+          }}
+          placeholder="What needs to be done?"
+          error={error}
+        />
+      </AnimatedContainer>
 
-      <Input
-        label="Description (Optional)"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Add more details..."
-        multiline
-      />
+      <AnimatedContainer type="slideUp" delay={50}>
+        <Input
+          label="Description (Optional)"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Add more details..."
+          multiline
+        />
+      </AnimatedContainer>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: colors.text }]}>Priority</Text>
-        <View style={styles.priorityContainer}>
-          <PriorityButton level="low" label="Low" />
-          <PriorityButton level="medium" label="Medium" />
-          <PriorityButton level="high" label="High" />
+      <AnimatedContainer type="slideUp" delay={100}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: colors.text }]}>Priority</Text>
+          <View style={styles.priorityContainer}>
+            <PriorityButton level="low" label="Low" />
+            <PriorityButton level="medium" label="Medium" />
+            <PriorityButton level="high" label="High" />
+          </View>
         </View>
-      </View>
+      </AnimatedContainer>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: colors.text }]}>Category (Optional)</Text>
+      <AnimatedContainer type="slideUp" delay={150}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: colors.text }]}>Category (Optional)</Text>
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false}
@@ -185,108 +194,115 @@ export const EnhancedTaskForm: React.FC<EnhancedTaskFormProps> = ({
             </Text>
           </View>
         )}
-      </View>
+        </View>
+      </AnimatedContainer>
 
-      <View style={styles.section}>
-        <Text style={[styles.sectionLabel, { color: colors.text }]}>Due Date (Optional)</Text>
+      <AnimatedContainer type="slideUp" delay={200}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: colors.text }]}>Due Date (Optional)</Text>
         <DatePicker
           value={dueDate}
           onChange={setDueDate}
           placeholder="Select due date"
         />
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.reminderHeader}>
-          <View>
-            <Text style={[styles.sectionLabel, { color: colors.text }]}>Reminder</Text>
-            <Text style={[styles.reminderSubtitle, { color: colors.textSecondary }]}>
-              Get notified before due date
-            </Text>
-          </View>
-          <Switch
-            value={enableReminder}
-            onValueChange={setEnableReminder}
-            trackColor={{ false: colors.border, true: colors.primary }}
-            thumbColor={enableReminder ? '#FFFFFF' : '#FFFFFF'}
-            disabled={!dueDate}
-          />
         </View>
-        
-        {enableReminder && dueDate && (
-          <View style={styles.reminderContent}>
-            <View style={styles.reminderInfo}>
-              <MaterialCommunityIcons 
-                name="information" 
-                size={16} 
-                color={colors.textSecondary} 
-              />
-              <Text style={[styles.reminderText, { color: colors.textSecondary }]}>
-                You will be reminded on {dueDate.toLocaleDateString()} at{' '}
-                {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </AnimatedContainer>
+
+      <AnimatedContainer type="slideUp" delay={250}>
+        <View style={styles.section}>
+          <View style={styles.reminderHeader}>
+            <View>
+              <Text style={[styles.sectionLabel, { color: colors.text }]}>Reminder</Text>
+              <Text style={[styles.reminderSubtitle, { color: colors.textSecondary }]}>
+                Get notified before due date
               </Text>
             </View>
-            
-            <TouchableOpacity
-              style={[styles.timeButton, { 
-                backgroundColor: colors.surface, 
-                borderColor: colors.border 
-              }]}
-              onPress={() => setShowTimePicker(true)}
-            >
-              <MaterialCommunityIcons 
-                name="clock-outline" 
-                size={20} 
-                color={colors.text} 
-              />
-              <Text style={[styles.timeButtonText, { color: colors.text }]}>
-                {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-              <MaterialCommunityIcons 
-                name="chevron-down" 
-                size={20} 
-                color={colors.textSecondary} 
-              />
-            </TouchableOpacity>
-
-            {showTimePicker && (
-              <DateTimePicker
-                value={reminderTime}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleTimeChange}
-              />
-            )}
-          </View>
-        )}
-        
-        {enableReminder && !dueDate && (
-          <View style={styles.warningContainer}>
-            <MaterialCommunityIcons 
-              name="alert-circle" 
-              size={16} 
-              color={colors.warning} 
+            <Switch
+              value={enableReminder}
+              onValueChange={setEnableReminder}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={enableReminder ? '#FFFFFF' : '#FFFFFF'}
+              disabled={!dueDate}
             />
-            <Text style={[styles.warningText, { color: colors.warning }]}>
-              Please set a due date to enable reminders
-            </Text>
           </View>
-        )}
-      </View>
+          
+          {enableReminder && dueDate && (
+            <View style={styles.reminderContent}>
+              <View style={styles.reminderInfo}>
+                <MaterialCommunityIcons 
+                  name="information" 
+                  size={16} 
+                  color={colors.textSecondary} 
+                />
+                <Text style={[styles.reminderText, { color: colors.textSecondary }]}>
+                  You will be reminded on {dueDate.toLocaleDateString()} at{' '}
+                  {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+              </View>
+              
+              <TouchableOpacity
+                style={[styles.timeButton, { 
+                  backgroundColor: colors.surface, 
+                  borderColor: colors.border 
+                }]}
+                onPress={() => setShowTimePicker(true)}
+              >
+                <MaterialCommunityIcons 
+                  name="clock-outline" 
+                  size={20} 
+                  color={colors.text} 
+                />
+                <Text style={[styles.timeButtonText, { color: colors.text }]}>
+                  {reminderTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </Text>
+                <MaterialCommunityIcons 
+                  name="chevron-down" 
+                  size={20} 
+                  color={colors.textSecondary} 
+                />
+              </TouchableOpacity>
 
-      <View style={styles.actions}>
-        <Button
-          title="Cancel"
-          variant="outline"
-          onPress={onCancel}
-          fullWidth
-        />
-        <Button
-          title={task ? 'Update Task' : 'Add Task'}
-          onPress={handleSubmit}
-          fullWidth
-        />
-      </View>
+              {showTimePicker && (
+                <DateTimePicker
+                  value={reminderTime}
+                  mode="time"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleTimeChange}
+                />
+              )}
+            </View>
+          )}
+          
+          {enableReminder && !dueDate && (
+            <View style={styles.warningContainer}>
+              <MaterialCommunityIcons 
+                name="alert-circle" 
+                size={16} 
+                color={colors.warning} 
+              />
+              <Text style={[styles.warningText, { color: colors.warning }]}>
+                Please set a due date to enable reminders
+              </Text>
+            </View>
+          )}
+        </View>
+      </AnimatedContainer>
+
+      <AnimatedContainer type="slideUp" delay={300}>
+        <View style={styles.actions}>
+          <Button
+            title="Cancel"
+            variant="outline"
+            onPress={onCancel}
+            fullWidth
+          />
+          <Button
+            title={task ? 'Update Task' : 'Add Task'}
+            onPress={handleSubmit}
+            fullWidth
+          />
+        </View>
+      </AnimatedContainer>
     </ScrollView>
   );
 };

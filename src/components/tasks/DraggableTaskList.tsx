@@ -4,6 +4,7 @@ import { useTheme } from '../ui/ThemeProvider';
 import { DraggableTaskItem } from './DraggableTaskItem';
 import { EmptyState } from '../ui/EmptyState';
 import { Task } from '../../types';
+import { AnimatedContainer } from '../animations/AnimatedComponents';
 
 interface DraggableTaskListProps {
   tasks: Task[];
@@ -41,15 +42,17 @@ export const DraggableTaskList: React.FC<DraggableTaskListProps> = ({
       data={tasks}
       keyExtractor={(item) => item.id}
       renderItem={({ item, index }) => (
-        <DraggableTaskItem
-          task={item}
-          index={index}
-          onToggle={onToggleTask}
-          onEdit={onEditTask}
-          onDelete={onDeleteTask}
-          onReorder={onReorderTasks}
-          totalTasks={tasks.length}
-        />
+        <AnimatedContainer type="slideUp" delay={index * 50}>
+          <DraggableTaskItem
+            task={item}
+            index={index}
+            onToggle={onToggleTask}
+            onEdit={onEditTask}
+            onDelete={onDeleteTask}
+            onReorder={onReorderTasks}
+            totalTasks={tasks.length}
+          />
+        </AnimatedContainer>
       )}
       style={[styles.list, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
