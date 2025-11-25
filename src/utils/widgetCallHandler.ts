@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useTaskStore } from '../store/useTaskStore';
 import { widgetService } from './widgetService';
 
@@ -11,93 +12,115 @@ interface WidgetCallData {
 /**
  * Обработчик событий от нативного виджета
  * Получает команды из виджета и выполняет соответствующие действия
+ * 
+ * Поддерживает:
+ * - Android: react-native-home-widget
+ * - iOS: WidgetKit (встроенное)
  */
 export const setupWidgetCallHandler = (): (() => void) => {
   const taskStore = useTaskStore.getState();
 
-  const handleWidgetCall = (event: any) => {
-    console.log('[WidgetCallHandler] Event received:', event);
+  // Android обработчик
+  if (Platform.OS === 'android') {
+    const handleWidgetCall = (event: any) => {
+      console.log('[WidgetCallHandler] Android event received:', event);
 
-    try {
-      const data: WidgetCallData = typeof event === 'string' ? JSON.parse(event) : event;
-
-      switch (data.type) {
-        case 'COMPLETE_TASK': {
-          if (data.taskId) {
-            taskStore.toggleCompletion(data.taskId);
-            updateWidgetData();
-            sendEventToWidget({
-              type: 'SUCCESS',
-              message: `Задача выполнена!`,
-            });
-          }
-          break;
-        }
-
-        case 'DELETE_TASK': {
-          if (data.taskId) {
-            taskStore.deleteTask(data.taskId);
-            updateWidgetData();
-            sendEventToWidget({
-              type: 'SUCCESS',
-              message: `Задача удалена!`,
-            });
-          }
-          break;
-        }
-
-        case 'TOGGLE_TASK': {
-          if (data.taskId) {
-            taskStore.toggleCompletion(data.taskId);
-            updateWidgetData();
-            const task = taskStore.tasks.find((t) => t.id === data.taskId);
-            const status = task?.isCompleted ? 'выполнена' : 'восстановлена';
-            sendEventToWidget({
-              type: 'SUCCESS',
-              message: `Задача ${status}!`,
-            });
-          }
-          break;
-        }
-
-        case 'GET_TASKS': {
-          updateWidgetData();
-          break;
-        }
-
-        case 'OPEN_APP': {
-          // Это не требуется обрабатывать, система сама откроет приложение
-          console.log('[WidgetCallHandler] Opening app...');
-          break;
-        }
-
-        default:
-          console.warn('[WidgetCallHandler] Unknown event type:', data.type);
+      try {
+        const data: WidgetCallData = typeof event === 'string' ? JSON.parse(event) : event;
+        processWidgetEvent(data, taskStore);
+      } catch (error) {
+        console.error('[WidgetCallHandler] Error processing event:', error);
+        sendEventToWidget({
+          type: 'ERROR',
+          message: 'Ошибка при обработке действия',
+        });
       }
-    } catch (error) {
-      console.error('[WidgetCallHandler] Error processing event:', error);
-      sendEventToWidget({
-        type: 'ERROR',
-        message: 'Ошибка при обработке действия',
-      });
+    };
+
+    (global as any).widgetCallHandler = handleWidgetCall;
+    updateWidgetData();
+
+    return () => {
+      delete (global as any).widgetCallHandler;
+    };
+  }
+
+  // iOS: данные синхронизируются через AppGroups + NSUserDefaults
+  if (Platform.OS === 'ios') {
+    console.log('[WidgetCallHandler] iOS widget sync initialized');
+    updateWidgetData();
+    
+    return () => {
+      console.log('[WidgetCallHandler] iOS widget sync cleaned up');
+    };
+  }
+
+  return () => {};
+};
+
+/**
+ * Обработать событие из виджета
+ */
+const processWidgetEvent = (data: WidgetCallData, taskStore: any) => {
+  switch (data.type) {
+    case 'COMPLETE_TASK': {
+      if (data.taskId) {
+        taskStore.toggleCompletion(data.taskId);
+        updateWidgetData();
+        sendEventToWidget({
+          type: 'SUCCESS',
+          message: `Задача выполнена!`,
+        });
+      }
+      break;
     }
-  };
 
-  // В реальном приложении здесь нужно было бы подписаться на события виджета
-  // Для теперь это просто коллбэк
-  (global as any).widgetCallHandler = handleWidgetCall;
+    case 'DELETE_TASK': {
+      if (data.taskId) {
+        taskStore.deleteTask(data.taskId);
+        updateWidgetData();
+        sendEventToWidget({
+          type: 'SUCCESS',
+          message: `Задача удалена!`,
+        });
+      }
+      break;
+    }
 
-  // Отправить начальные данные
-  updateWidgetData();
+    case 'TOGGLE_TASK': {
+      if (data.taskId) {
+        taskStore.toggleCompletion(data.taskId);
+        updateWidgetData();
+        const task = taskStore.tasks.find((t: any) => t.id === data.taskId);
+        const status = task?.isCompleted ? 'выполнена' : 'восстановлена';
+        sendEventToWidget({
+          type: 'SUCCESS',
+          message: `Задача ${status}!`,
+        });
+      }
+      break;
+    }
 
-  // Вернуть функцию для очистки
-  return () => {
-    delete (global as any).widgetCallHandler;
-  };
+    case 'GET_TASKS': {
+      updateWidgetData();
+      break;
+    }
+
+    case 'OPEN_APP': {
+      console.log('[WidgetCallHandler] Opening app...');
+      break;
+    }
+
+    default:
+      console.warn('[WidgetCallHandler] Unknown event type:', data.type);
+  }
 };
 
 /**
  * Обновить данные виджета
+ * Работает на обоих платформах через разные механизмы:
+ * - Android: через react-native-home-widget
+ * - iOS: через AppGroups + NSUserDefaults
  */
 export const updateWidgetData = (): void => {
   try {
@@ -127,6 +150,13 @@ export const updateWidgetData = (): void => {
 
     // Сохранить в AsyncStorage для доступа из нативного виджета
     widgetService.updateWidget(tasks);
+    
+    if (Platform.OS === 'android') {
+      console.log('[WidgetCallHandler] Android widget data updated');
+    } else if (Platform.OS === 'ios') {
+      console.log('[WidgetCallHandler] iOS widget data synced to AppGroups');
+    }
+    
     console.log('[WidgetCallHandler] Widget data updated:', widgetData);
   } catch (error) {
     console.error('[WidgetCallHandler] Error updating widget data:', error);
