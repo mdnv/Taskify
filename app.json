@@ -15,7 +15,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.iliyar.taskify"
     },
     "android": {
       "package": "com.iliyar.taskify",
@@ -35,7 +36,21 @@
       }
     },
     "plugins": [
-      "expo-build-properties"
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "react-native-home-widget",
+        {
+          "appGroupIdentifier": "group.com.iliyar.taskify",
+          "iosMinimumDeploymentTarget": "14.0"
+        }
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"

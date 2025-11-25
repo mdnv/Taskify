@@ -1,0 +1,43 @@
+/* ===================================================================
+   ios/Taskify/Info.plist - конфигурация для iOS виджета
+   =================================================================== */
+
+Нужно добавить в Info.plist этот блок:
+
+```xml
+<key>NSAppGroupsContainers</key>
+<array>
+  <string>group.com.iliyar.taskify</string>
+</array>
+```
+
+ВАЖНО для сборки:
+1. Это нужно добавить в ios/Taskify/Info.plist
+2. Expo сделает это автоматически если указать в app.json
+3. Для EAS Build нужна конфигурация
+
+===== РЕШЕНИЕ: Обновить app.json =====
+
+Добавить в app.json это:
+
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      [
+        "react-native-home-widget",
+        {
+          "appGroupIdentifier": "group.com.iliyar.taskify",
+          "iosMinimumDeploymentTarget": "14.0"
+        }
+      ]
+    ]
+  }
+}
