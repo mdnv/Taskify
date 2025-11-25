@@ -22,7 +22,6 @@ import { HomeWidget } from '../widgets/HomeWidget';
 import { useTaskStore } from '../store/useTaskStore';
 import { TestTaskForm } from '../components/tasks/TestTaskForm';
 
-
 export const HomeScreen: React.FC = () => {
   const { colors } = useTheme();
   const {
@@ -40,7 +39,7 @@ export const HomeScreen: React.FC = () => {
     getFilteredTasks,
     clearCompleted,
     getOverdueTasks,
-    reorderTasks, // Phase 3: Add reorder function
+    reorderTasks,
   } = useTaskStore();
 
   const { categories, loadCategories } = useCategoryStore();
@@ -161,7 +160,6 @@ export const HomeScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  // Phase 3: Sort Options Component
   const SortOption: React.FC<{ sortKey: 'created' | 'dueDate' | 'priority' | 'manual'; label: string; icon: string }> = 
     ({ sortKey, label, icon }) => (
     <TouchableOpacity
@@ -194,269 +192,276 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header with Stats */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={[styles.title, { color: colors.text }]}>Taskify</Text>
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => setShowSearch(!showSearch)}
-            >
-              <MaterialCommunityIcons
-                name="magnify"
-                size={24}
-                color={colors.text}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => setShowFilters(!showFilters)}
-            >
-              <MaterialCommunityIcons
-                name="filter-variant"
-                size={24}
-                color={colors.text}
-              />
-            </TouchableOpacity>
+      {/* Main ScrollView that wraps entire content */}
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header with Stats */}
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <Text style={[styles.title, { color: colors.text }]}>Taskify</Text>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={() => setShowSearch(!showSearch)}
+              >
+                <MaterialCommunityIcons
+                  name="magnify"
+                  size={24}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={() => setShowFilters(!showFilters)}
+              >
+                <MaterialCommunityIcons
+                  name="filter-variant"
+                  size={24}
+                  color={colors.text}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.stats}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.primary }]}>
-              {stats.total}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Total
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.success }]}>
-              {stats.completed}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Done
-            </Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.warning }]}>
-              {stats.active}
-            </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-              Active
-            </Text>
-          </View>
-          {stats.overdue > 0 && (
+          <View style={styles.stats}>
             <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: colors.error }]}>
-                {stats.overdue}
+              <Text style={[styles.statNumber, { color: colors.primary }]}>
+                {stats.total}
               </Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-                Overdue
+                Total
               </Text>
             </View>
-          )}
-        </View>
-      </View>
-
-      {/* Search Bar */}
-      {showSearch && (
-        <View style={styles.searchContainer}>
-          <Input
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search tasks..."
-          />
-        </View>
-      )}
-
-      {/* Enhanced Filters with Sort Options - Phase 3 */}
-      {showFilters && (
-        <View style={[styles.filtersPanel, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.filtersTitle, { color: colors.text }]}>Filters & Sort</Text>
-          
-          {/* Phase 3: Sort Options */}
-          <View style={styles.filterSection}>
-            <Text style={[styles.filterSectionLabel, { color: colors.text }]}>Sort By</Text>
-            <View style={styles.sortOptions}>
-              <SortOption sortKey="created" label="Recently Added" icon="clock" />
-              <SortOption sortKey="dueDate" label="Due Date" icon="calendar" />
-              <SortOption sortKey="priority" label="Priority" icon="flag" />
-              <SortOption sortKey="manual" label="Manual" icon="drag" />
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.success }]}>
+                {stats.completed}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                Done
+              </Text>
             </View>
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={[styles.filterSectionLabel, { color: colors.text }]}>Priority</Text>
-            <View style={styles.priorityFilters}>
-              <PriorityFilter priority="high" label="High" />
-              <PriorityFilter priority="medium" label="Medium" />
-              <PriorityFilter priority="low" label="Low" />
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.warning }]}>
+                {stats.active}
+              </Text>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                Active
+              </Text>
             </View>
+            {stats.overdue > 0 && (
+              <View style={styles.statItem}>
+                <Text style={[styles.statNumber, { color: colors.error }]}>
+                  {stats.overdue}
+                </Text>
+                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+                  Overdue
+                </Text>
+              </View>
+            )}
           </View>
+        </View>
 
-          <View style={styles.filterSection}>
-            <Text style={[styles.filterSectionLabel, { color: colors.text }]}>Category</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View style={styles.categoryFilters}>
-                <TouchableOpacity
-                  style={[
-                    styles.categoryFilter,
-                    {
-                      backgroundColor: !filters.category ? colors.primary : colors.surface,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setFilter({ category: undefined })}
-                >
-                  <Text
+        {/* Search Bar */}
+        {showSearch && (
+          <View style={styles.searchContainer}>
+            <Input
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search tasks..."
+            />
+          </View>
+        )}
+
+        {/* Enhanced Filters with Sort Options */}
+        {showFilters && (
+          <View style={[styles.filtersPanel, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.filtersTitle, { color: colors.text }]}>Filters & Sort</Text>
+            
+            {/* Sort Options */}
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionLabel, { color: colors.text }]}>Sort By</Text>
+              <View style={styles.sortOptions}>
+                <SortOption sortKey="created" label="Recently Added" icon="clock" />
+                <SortOption sortKey="dueDate" label="Due Date" icon="calendar" />
+                <SortOption sortKey="priority" label="Priority" icon="flag" />
+                <SortOption sortKey="manual" label="Manual" icon="drag" />
+              </View>
+            </View>
+
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionLabel, { color: colors.text }]}>Priority</Text>
+              <View style={styles.priorityFilters}>
+                <PriorityFilter priority="high" label="High" />
+                <PriorityFilter priority="medium" label="Medium" />
+                <PriorityFilter priority="low" label="Low" />
+              </View>
+            </View>
+
+            <View style={styles.filterSection}>
+              <Text style={[styles.filterSectionLabel, { color: colors.text }]}>Category</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.categoryFilters}>
+                  <TouchableOpacity
                     style={[
-                      styles.categoryFilterText,
+                      styles.categoryFilter,
                       {
-                        color: !filters.category ? '#FFFFFF' : colors.text,
+                        backgroundColor: !filters.category ? colors.primary : colors.surface,
+                        borderColor: colors.border,
                       },
                     ]}
+                    onPress={() => setFilter({ category: undefined })}
                   >
-                    All
-                  </Text>
-                </TouchableOpacity>
-                {categories.map((category) => (
-                  <CategoryChip
-                    key={category.id}
-                    category={category}
-                    selected={filters.category === category.id}
-                    onPress={() => setFilter({ 
-                      category: filters.category === category.id ? undefined : category.id 
-                    })}
-                    size="small"
-                    showCount
-                  />
-                ))}
-              </View>
-            </ScrollView>
-          </View>
+                    <Text
+                      style={[
+                        styles.categoryFilterText,
+                        {
+                          color: !filters.category ? '#FFFFFF' : colors.text,
+                        },
+                      ]}
+                    >
+                      All
+                    </Text>
+                  </TouchableOpacity>
+                  {categories.map((category) => (
+                    <CategoryChip
+                      key={category.id}
+                      category={category}
+                      selected={filters.category === category.id}
+                      onPress={() => setFilter({ 
+                        category: filters.category === category.id ? undefined : category.id 
+                      })}
+                      size="small"
+                      showCount
+                    />
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
 
-          <TouchableOpacity
-            style={[
-              styles.overdueFilter,
-              {
-                backgroundColor: filters.showOverdue ? colors.error : colors.surface,
-                borderColor: colors.border,
-              },
-            ]}
-            onPress={() => setFilter({ showOverdue: !filters.showOverdue })}
-          >
-            <MaterialCommunityIcons
-              name="alert"
-              size={16}
-              color={filters.showOverdue ? '#FFFFFF' : colors.error}
-            />
-            <Text
+            <TouchableOpacity
               style={[
-                styles.overdueFilterText,
+                styles.overdueFilter,
                 {
-                  color: filters.showOverdue ? '#FFFFFF' : colors.text,
+                  backgroundColor: filters.showOverdue ? colors.error : colors.surface,
+                  borderColor: colors.border,
                 },
               ]}
+              onPress={() => setFilter({ showOverdue: !filters.showOverdue })}
             >
-              Show Overdue Only
-            </Text>
-          </TouchableOpacity>
+              <MaterialCommunityIcons
+                name="alert"
+                size={16}
+                color={filters.showOverdue ? '#FFFFFF' : colors.error}
+              />
+              <Text
+                style={[
+                  styles.overdueFilterText,
+                  {
+                    color: filters.showOverdue ? '#FFFFFF' : colors.text,
+                  },
+                ]}
+              >
+                Show Overdue Only
+              </Text>
+            </TouchableOpacity>
 
-          {(filters.priority || filters.category || filters.showOverdue || settings.sortBy !== 'created') && (
+            {(filters.priority || filters.category || filters.showOverdue || settings.sortBy !== 'created') && (
+              <TouchableOpacity
+                style={styles.clearFilters}
+                onPress={() => {
+                  setFilter({ priority: undefined, category: undefined, showOverdue: false });
+                  setSortBy('created');
+                }}
+              >
+                <Text style={[styles.clearFiltersText, { color: colors.primary }]}>
+                  Clear All Filters & Sort
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Quick Add Input */}
+        <View style={styles.quickAddContainer}>
+          <View style={styles.inputWrapper}>
+            <Input
+              value={quickTask}
+              onChangeText={setQuickTask}
+              placeholder="Add a quick task..."
+              onSubmitEditing={handleAddQuickTask}
+            />
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.addButton,
+              { backgroundColor: quickTask.trim() ? colors.primary : colors.textSecondary }
+            ]}
+            onPress={handleAddQuickTask}
+            disabled={!quickTask.trim()}
+          >
+            <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Widget Preview */}
+        <View style={[styles.widgetContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <HomeWidget 
+            tasks={tasks}
+            onToggleTask={handleToggleTask}
+            onOpenApp={handleOpenApp}
+          />
+        </View>
+
+        {/* Filter Bar */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterContainer}
+          contentContainerStyle={styles.filterContent}
+        >
+          <FilterButton status="all" label="All" />
+          <FilterButton status="active" label="Active" />
+          <FilterButton status="completed" label="Completed" />
+          
+          {stats.completed > 0 && (
             <TouchableOpacity
-              style={styles.clearFilters}
-              onPress={() => {
-                setFilter({ priority: undefined, category: undefined, showOverdue: false });
-                setSortBy('created');
-              }}
+              style={[styles.clearButton, { borderColor: colors.error }]}
+              onPress={clearCompleted}
             >
-              <Text style={[styles.clearFiltersText, { color: colors.primary }]}>
-                Clear All Filters & Sort
+              <Text style={[styles.clearText, { color: colors.error }]}>
+                Clear Completed
               </Text>
             </TouchableOpacity>
           )}
-        </View>
-      )}
+        </ScrollView>
 
-      {/* Quick Add Input */}
-      <View style={styles.quickAddContainer}>
-        <View style={styles.inputWrapper}>
-          <Input
-            value={quickTask}
-            onChangeText={setQuickTask}
-            placeholder="Add a quick task..."
-            onSubmitEditing={handleAddQuickTask}
+        {/* Task List - Now inside ScrollView */}
+        {settings.sortBy === 'manual' ? (
+          <DraggableTaskList
+            tasks={filteredTasks}
+            onToggleTask={toggleCompletion}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
+            onReorderTasks={reorderTasks}
+            refreshing={isLoading}
+            onRefresh={loadTasks}
           />
-        </View>
-        <TouchableOpacity
-          style={[
-            styles.addButton,
-            { backgroundColor: quickTask.trim() ? colors.primary : colors.textSecondary }
-          ]}
-          onPress={handleAddQuickTask}
-          disabled={!quickTask.trim()}
-        >
-          <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Widget Preview */}
-      <View style={[styles.widgetContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <HomeWidget 
-          tasks={tasks}
-          onToggleTask={handleToggleTask}
-          onOpenApp={handleOpenApp}
-        />
-      </View>
-
-      {/* Filter Bar */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterContainer}
-        contentContainerStyle={styles.filterContent}
-      >
-        <FilterButton status="all" label="All" />
-        <FilterButton status="active" label="Active" />
-        <FilterButton status="completed" label="Completed" />
-        
-        {stats.completed > 0 && (
-          <TouchableOpacity
-            style={[styles.clearButton, { borderColor: colors.error }]}
-            onPress={clearCompleted}
-          >
-            <Text style={[styles.clearText, { color: colors.error }]}>
-              Clear Completed
-            </Text>
-          </TouchableOpacity>
+        ) : (
+          <TaskList
+            tasks={filteredTasks}
+            onToggleTask={toggleCompletion}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
+            refreshing={isLoading}
+            onRefresh={loadTasks}
+          />
         )}
       </ScrollView>
 
-      {/* Phase 3: Conditional Task List Rendering */}
-      {settings.sortBy === 'manual' ? (
-        <DraggableTaskList
-          tasks={filteredTasks}
-          onToggleTask={toggleCompletion}
-          onEditTask={handleEditTask}
-          onDeleteTask={handleDeleteTask}
-          onReorderTasks={reorderTasks}
-          refreshing={isLoading}
-          onRefresh={loadTasks}
-        />
-      ) : (
-        <TaskList
-          tasks={filteredTasks}
-          onToggleTask={toggleCompletion}
-          onEditTask={handleEditTask}
-          onDeleteTask={handleDeleteTask}
-          refreshing={isLoading}
-          onRefresh={loadTasks}
-        />
-      )}
-
-      {/* FAB */}
+      {/* FAB - Outside ScrollView to stay fixed */}
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: colors.primary }]}
         onPress={() => setIsAddModalVisible(true)}
@@ -464,8 +469,7 @@ export const HomeScreen: React.FC = () => {
         <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
-      {/* Phase 3: Enhanced Task Form Modals */}
-
+      {/* Modals */}
       <Modal
         visible={isAddModalVisible}
         onClose={() => setIsAddModalVisible(false)}
@@ -514,6 +518,13 @@ export const HomeScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 80, // Space for FAB
   },
   header: {
     paddingHorizontal: 16,
