@@ -15,7 +15,13 @@
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "provisioning": "adhoc"
+      }
     }
   },
   "submit": {
