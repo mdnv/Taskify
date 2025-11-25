@@ -18,9 +18,6 @@
       "channel": "production",
       "android": {
         "buildType": "apk"
-      },
-      "ios": {
-        "provisioning": "adhoc"
       }
     }
   },
