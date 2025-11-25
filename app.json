@@ -2,7 +2,7 @@
   "expo": {
     "name": "Taskify",
     "slug": "taskify",
-    "version": "1.3.1",
+    "version": "1.3.2",
     "orientation": "portrait",
     "icon": "./assets/taskify.png",
     "userInterfaceStyle": "automatic",
@@ -20,7 +20,7 @@
     },
     "android": {
       "package": "com.iliyar.taskify",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/taskify-adaptive.png",
         "backgroundColor": "#6366F1"
