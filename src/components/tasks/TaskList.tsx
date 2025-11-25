@@ -29,7 +29,7 @@ export const TaskList: React.FC<TaskListProps> = ({
       <EmptyState
         icon="checkbox-blank-outline"
         title="No tasks yet"
-        message="Add your first task to get started with TaskFlow Pro!"
+        message="Add your first task to get started with Taskify!"
       />
     );
   }

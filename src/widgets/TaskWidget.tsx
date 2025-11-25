@@ -9,7 +9,7 @@ export function TaskWidget({ tasks, totalTasks, completedTasks }: WidgetProps) {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <RNText style={styles.header}>TaskFlow Pro</RNText>
+      <RNText style={styles.header}>Taskify</RNText>
       
       {/* Stats */}
       <RNText style={styles.stats}>

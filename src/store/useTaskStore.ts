@@ -87,7 +87,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       return { tasks: newTasks };
     });
 
-    await widgetService.onTasksChange([...get().tasks, newTask]);
+    await widgetService.updateWidget([...get().tasks, newTask]);
 
     // Создаем напоминание если указано
     if (taskData.reminder) {
@@ -138,7 +138,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     return { tasks: newTasks };
   });
 
-  await widgetService.onTasksChange(get().tasks);
+  await widgetService.updateWidget(get().tasks);
 
   // Schedule notification after state is updated
   const updatedTask = get().tasks.find(task => task.id === id);
@@ -179,7 +179,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       return { tasks: newTasks };
     });
 
-    await widgetService.onTasksChange(get().tasks);
+    await widgetService.updateWidget(get().tasks);
 
     // Удаляем связанные уведомления
     if (taskToDelete?.notificationId) {
@@ -199,7 +199,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       return { tasks: newTasks };
     });
 
-    await widgetService.onTasksChange(get().tasks);
+    await widgetService.updateWidget(get().tasks);
 
     // Если задача завершена, удаляем напоминания и сбрасываем флаг overdue
     const task = get().tasks.find(t => t.id === id);
@@ -214,7 +214,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   initializeWidget: async () => {
     const { tasks } = get();
     if (tasks && Array.isArray(tasks)) {
-      await widgetService.onTasksChange(tasks);
+      await widgetService.updateWidget(tasks);
     }
   },
 

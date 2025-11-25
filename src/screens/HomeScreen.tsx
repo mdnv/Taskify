@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { useTheme } from '../components/ui/ThemeProvider';
 import { useCategoryStore } from '../store/useCategoryStore';
@@ -17,7 +18,7 @@ import { Task } from '../types';
 import { DraggableTaskList } from '../components/tasks/DraggableTaskList';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { EnhancedTaskForm } from '../components/tasks/EnhancedTaskForm';
-import { SimpleWidget } from '../widgets/SimpleWidget';
+import { HomeWidget } from '../widgets/HomeWidget';
 import { useTaskStore } from '../store/useTaskStore';
 import { TestTaskForm } from '../components/tasks/TestTaskForm';
 
@@ -403,7 +404,7 @@ export const HomeScreen: React.FC = () => {
 
       {/* Widget Preview */}
       <View style={[styles.widgetContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <SimpleWidget 
+        <HomeWidget 
           tasks={tasks}
           onToggleTask={handleToggleTask}
           onOpenApp={handleOpenApp}

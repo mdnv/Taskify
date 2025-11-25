@@ -23,7 +23,7 @@ export const BackupRestore: React.FC = () => {
       
       const data = exportData();
       const jsonString = JSON.stringify(data, null, 2);
-      const fileName = `TaskFlowPro_Backup_${new Date().toISOString().split('T')[0]}.json`;
+      const fileName = `Taskify_Backup_${new Date().toISOString().split('T')[0]}.json`;
       
       if (Platform.OS === 'web') {
         // For web - create download link
@@ -122,7 +122,7 @@ export const BackupRestore: React.FC = () => {
         });
       }
 
-      const fileName = `TaskFlowPro_Export_${new Date().toISOString().split('T')[0]}.csv`;
+      const fileName = `Taskify_Export_${new Date().toISOString().split('T')[0]}.csv`;
       
       if (Platform.OS === 'web') {
         const blob = new Blob([csvContent], { type: 'text/csv' });

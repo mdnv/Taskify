@@ -12,6 +12,7 @@ import { useCategoryStore } from './src/store/useCategoryStore';
 import { Text, View } from 'react-native';
 import { useTaskStore } from './src/store/useTaskStore';
 import { NotificationService } from './src/utils/notifications';
+import { widgetService } from './src/utils/widgetService';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
@@ -22,7 +23,7 @@ const Tab = createBottomTabNavigator();
 function TabNavigator() {
   const { colors, isDark } = useTheme();
   const { loadCategories } = useCategoryStore();
-  const { loadTasks, scheduleTaskReminders, checkAndNotifyOverdueTasks } = useTaskStore();
+  const { loadTasks, scheduleTaskReminders, checkAndNotifyOverdueTasks, tasks } = useTaskStore();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -34,10 +35,21 @@ function TabNavigator() {
       await scheduleTaskReminders();
       await checkAndNotifyOverdueTasks();
       
+      // Инициализация виджета
+      if (tasks && tasks.length > 0) {
+        await widgetService.initializeWidget(tasks);
+      }
     };
 
     initializeApp();
   }, []);
+
+  // Обновление виджета при изменении задач
+  useEffect(() => {
+    if (tasks && tasks.length >= 0) {
+      widgetService.updateWidget(tasks);
+    }
+  }, [tasks]);
 
   return (
     <Tab.Navigator
