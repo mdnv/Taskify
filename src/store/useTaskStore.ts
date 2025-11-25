@@ -201,11 +201,13 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
     await widgetService.onTasksChange(get().tasks);
 
-    // Если задача завершена, удаляем напоминания
+    // Если задача завершена, удаляем напоминания и сбрасываем флаг overdue
     const task = get().tasks.find(t => t.id === id);
-    if (task?.notificationId) {
-      await NotificationService.cancelReminder(task.notificationId);
-      get().updateTask(id, { notificationId: undefined });
+    if (task?.isCompleted) {
+      if (task.notificationId) {
+        await NotificationService.cancelReminder(task.notificationId);
+      }
+      get().updateTask(id, { notificationId: undefined, overdueNotificationSent: false });
     }
   },
 
@@ -232,7 +234,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   checkAndNotifyOverdueTasks: async () => {
     const { tasks } = get();
-    await NotificationService.checkOverdueTasks(tasks);
+    const overdueTasks = await NotificationService.checkOverdueTasks(tasks);
+    
+    // Отправляем уведомление и помечаем как отправленное
+    for (const task of overdueTasks) {
+      const notificationId = await NotificationService.scheduleOverdueReminder(task);
+      if (notificationId) {
+        get().updateTask(task.id, { overdueNotificationSent: true });
+      }
+    }
   },
 
   setFilter: (filter) => {

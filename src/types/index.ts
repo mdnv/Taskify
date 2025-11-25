@@ -11,6 +11,7 @@ export interface Task {
   order: number;
   reminder?: Date;
   notificationId?: string;
+  overdueNotificationSent?: boolean;
 }
 
 

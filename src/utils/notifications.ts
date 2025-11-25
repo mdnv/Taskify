@@ -61,7 +61,7 @@ export class NotificationService {
 
   // Создание уведомления о просроченной задаче
   static async scheduleOverdueReminder(task: Task) {
-    if (!task.dueDate || task.dueDate > new Date() || task.isCompleted) {
+    if (!task.dueDate || task.dueDate > new Date() || task.isCompleted || task.overdueNotificationSent) {
       return null;
     }
 
@@ -84,12 +84,11 @@ export class NotificationService {
     const overdueTasks = tasks.filter(task => 
       task.dueDate && 
       task.dueDate < now && 
-      !task.isCompleted
+      !task.isCompleted &&
+      !task.overdueNotificationSent
     );
 
-    for (const task of overdueTasks) {
-      await this.scheduleOverdueReminder(task);
-    }
+    return overdueTasks; // Возвращаем список просроченных задач для store
   }
 
   // Удаление всех уведомлений для задачи

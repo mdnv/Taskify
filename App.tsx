@@ -13,7 +13,6 @@ import { Text, View } from 'react-native';
 import { useTaskStore } from './src/store/useTaskStore';
 import { NotificationService } from './src/utils/notifications';
 import * as SplashScreen from 'expo-splash-screen';
-import './src/widgets/registry';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -23,7 +22,7 @@ const Tab = createBottomTabNavigator();
 function TabNavigator() {
   const { colors, isDark } = useTheme();
   const { loadCategories } = useCategoryStore();
-  const { loadTasks, scheduleTaskReminders, checkAndNotifyOverdueTasks, initializeWidget } = useTaskStore();
+  const { loadTasks, scheduleTaskReminders, checkAndNotifyOverdueTasks } = useTaskStore();
 
   useEffect(() => {
     const initializeApp = async () => {
@@ -35,8 +34,6 @@ function TabNavigator() {
       await scheduleTaskReminders();
       await checkAndNotifyOverdueTasks();
       
-      // Инициализация виджета
-      await initializeWidget();
     };
 
     initializeApp();
@@ -65,8 +62,8 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home" size={size} color={color} />
           ),
-          title: 'Tasks',
-          tabBarStyle: { marginBottom: 8 },
+          tabBarItemStyle: { marginBottom: 4 },
+          title: 'Tasks'
         }}
       />
       <Tab.Screen
@@ -76,8 +73,8 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="folder" size={size} color={color} />
           ),
-          title: 'Categories',
-          tabBarStyle: { marginBottom: 8 },
+          tabBarItemStyle: { marginBottom: 4 },
+          title: 'Categories'
         }}
       />
       <Tab.Screen
@@ -87,8 +84,8 @@ function TabNavigator() {
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="chart-box" size={size} color={color} />
           ),
-          title: 'Analytics',
-          tabBarStyle: { marginBottom: 8 },
+          tabBarItemStyle: { marginBottom: 4 },
+          title: 'Analytics'
         }}
       />
     </Tab.Navigator>
